@@ -1,71 +1,67 @@
-import React, {useState } from "react";
-import 'aos/dist/aos.css'
+import React, { useState } from "react";
 import { RiLoginCircleLine, RiLockPasswordFill } from 'react-icons/ri'
 import { BiUserCircle } from 'react-icons/bi'
 import { AuthContext } from "../../providers/auth";
-import { FormLogin } from "./style";
-import { WarningFieldLogin } from "../login/style";
-
+import { LoginPage, FormLogin, WarningFieldLogin } from "./style";
 
 export const Login = (props: any) => {
-    const { user} = React.useContext(AuthContext);
-    const [incorretPass, setincorretPass] = useState(false)
-    const [name, setName] = useState(user.name || '')
-    const [pass, setPass] = useState(user.pass || '')
-    const cond = (name.length > 3 && pass.length > 5)
+  const { setIsLoggedIn, setUser, user } = React.useContext(AuthContext);
+  const [name, setName] = useState('')
+  const [pass, setPass] = useState('')
+  const cond = (name.length > 3 && pass.length > 5)
 
-    const saveUser = (name: any, pass: any) => {
-        const { history: { push } } = props
-        if (name === user.name && pass === user.pass) {
-            push('/store')
-        } else if (name !== user.name || pass !== user.pass) {
-            setincorretPass(true)
-        }
-    }
+  const saveUser = () => {
+    const { history: { push } } = props
+    setUser({ ...user, name, email: `${name.toLowerCase().replace(/\s+/g, '')}@mail.com` });
+    setIsLoggedIn(true);
+    push('/store')
+  }
 
-    return (
-        <>
-            <FormLogin>
-                <div>
-                <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS2BetQecEPZPH1770yc9Wtm2_yr90fGe1S0JkPrDXLnA&s"alt="Image Profile" />
-                </div>
-                
-                <div>
-                    <label>
-                        <BiUserCircle style={{ marginRight: "8px", color: 'white' }} />
-                        User
-                    </label>
-                    <input
-                        type="text"
-                        onChange={({ target: { value } }) => setName(value)}
-                        value={name}
-                    />
-                </div>
-                <div>
-                    <label>
-                        <RiLockPasswordFill style={{ marginRight: "8px", color: 'white' }}/>
-                        Password
-                    </label>
-                    <input
-                        type={"password"}
-                        onChange={({ target: { value } }) => setPass(value)}
-                        value={pass}
-                    />
+  return (
+    <LoginPage>
+      <FormLogin>
+        <div className="brand">
+          <span className="brand-icon">⚡</span>
+          <span className="brand-name">EletronicStore</span>
+        </div>
 
-                </div>
-                {
-                    incorretPass && <WarningFieldLogin>User or Password Incorrect</WarningFieldLogin>
-                }
-                <button
-                    onClick={() => saveUser(name, pass)}
-                    type="button"
-                    disabled={!cond}
-                    
-                >
-                    <RiLoginCircleLine style={{ marginRight: "5px",}} />
-                    Sing In
-                </button>
-            </FormLogin>
-        </>
-    )
+        <div className="form-header">
+          <h1>Bem-vindo de volta</h1>
+          <p>Entre com qualquer usuário e senha para continuar</p>
+        </div>
+
+        <div className="form-group">
+          <label><BiUserCircle /> Usuário</label>
+          <input
+            type="text"
+            placeholder="Seu nome de usuário"
+            onChange={({ target: { value } }) => setName(value)}
+            value={name}
+          />
+        </div>
+
+        <div className="form-group">
+          <label><RiLockPasswordFill /> Senha</label>
+          <input
+            type="password"
+            placeholder="Sua senha"
+            onChange={({ target: { value } }) => setPass(value)}
+            value={pass}
+          />
+        </div>
+
+        {!cond && name.length > 0 && (
+          <WarningFieldLogin>Usuário deve ter mais de 3 caracteres e senha mais de 5</WarningFieldLogin>
+        )}
+
+        <button
+          onClick={saveUser}
+          type="button"
+          disabled={!cond}
+        >
+          <RiLoginCircleLine /> Entrar
+        </button>
+      </FormLogin>
+    </LoginPage>
+  )
 }

@@ -1,29 +1,43 @@
 import React from "react";
 import { AuthContext } from "../../providers/auth";
-import { ProfileFields } from "./style";
+import { ProfilePage, ProfileCard } from "./style";
 
-export const Profile =(props: any)=>{
-    const { user,} = React.useContext(AuthContext);
-    
-    const toProfileEdit = ()=>{
-        const {history: {push}} = props;
-        push('/profile/edit')
-    }
-    
+export const Profile = (props: any) => {
+  const { user } = React.useContext(AuthContext);
 
-    return(
-        <ProfileFields data-aos="zoom-out-up">
-            <h1 style={{color: 'white'}}>Profile</h1>
-            <img src={user.image || ''} alt="img-user" />
-            <p> <span>NOME: </span>{`${user.name || '' }`}</p>
-            <p><span>EMAIL: </span>{`${user.email || ''}`}</p>
-            <p><span>CPF: </span>{`${user.cpf || ''}`}</p>
-            <p><span>SALDO:</span>{`${user.saldo.toLocaleString("pt-BR", {style:"currency", currency:"BRL"})}`}</p>
-            <button
-            onClick={toProfileEdit}
-            >
-                Edit Profile
-            </button>
-        </ProfileFields>
-    )
+  const toProfileEdit = () => {
+    const { history: { push } } = props;
+    push('/profile/edit')
+  }
+
+  const initial = user.name ? user.name.charAt(0).toUpperCase() : '?';
+
+  return (
+    <ProfilePage>
+      <ProfileCard>
+        <div className="profile-header">
+          <div className="profile-avatar">{initial}</div>
+          <div className="user-info">
+            <h1>{user.name}</h1>
+            <span className="user-email">{user.email}</span>
+          </div>
+        </div>
+
+        <div className="profile-fields">
+          <div className="field">
+            <span className="field-label">CPF</span>
+            <span className="field-value">{user.cpf}</span>
+          </div>
+          <div className="field">
+            <span className="field-label">Saldo</span>
+            <span className="field-value green">
+              {Number(user.saldo).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+            </span>
+          </div>
+        </div>
+
+        <button onClick={toProfileEdit}>Editar Perfil</button>
+      </ProfileCard>
+    </ProfilePage>
+  )
 }

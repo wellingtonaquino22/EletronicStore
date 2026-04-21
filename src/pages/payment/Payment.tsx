@@ -4,74 +4,174 @@ import { AiFillCheckCircle } from "react-icons/ai";
 import { ImCancelCircle } from "react-icons/im";
 import { Loading } from "../../components/loading/Loading";
 import { AuthContext } from "../../providers/auth";
-import { InsufficientFunds, PaymentArea } from "./style";
+import {
+  PaymentPage, CheckoutCard, CardElementWrapper, TestCardHint,
+  SuccessCard, ErrorCard
+} from "./style";
+import { loadStripe } from "@stripe/stripe-js";
+import { Elements, CardElement, useStripe, useElements } from "@stripe/react-stripe-js";
+
+const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY || "");
+
+const CARD_OPTIONS = {
+  style: {
+    base: {
+      fontSize: "16px",
+      color: "#f1f5f9",
+      fontFamily: "'Inter', sans-serif",
+      fontSmoothing: "antialiased",
+      "::placeholder": { color: "#475569" },
+      iconColor: "#10b981",
+    },
+    invalid: {
+      color: "#f87171",
+      iconColor: "#f87171",
+    },
+  },
+};
+
+interface CheckoutFormProps {
+  price: string;
+  onSuccess: () => void;
+}
+
+const CheckoutForm = ({ price, onSuccess }: CheckoutFormProps) => {
+  const stripe = useStripe();
+  const elements = useElements();
+  const [processing, setProcessing] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!stripe || !elements) return;
+
+    setProcessing(true);
+    setErrorMsg("");
+
+    const cardElement = elements.getElement(CardElement);
+    if (!cardElement) return;
+
+    const { error, paymentMethod } = await stripe.createPaymentMethod({
+      type: "card",
+      card: cardElement,
+    });
+
+    if (error) {
+      setErrorMsg(error.message || "Cartão inválido.");
+      setProcessing(false);
+    } else if (paymentMethod) {
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+      onSuccess();
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit}>
+      <div className="amount-row">
+        <span>Total a pagar</span>
+        <span className="amount">
+          {parseFloat(price).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+        </span>
+      </div>
+
+      <div className="divider" />
+
+      <div className="field-group">
+        <label>Dados do cartão</label>
+        <CardElementWrapper>
+          <CardElement options={CARD_OPTIONS} />
+        </CardElementWrapper>
+      </div>
+
+      {errorMsg && <div className="error-msg">{errorMsg}</div>}
+
+      <TestCardHint>
+        🧪 Teste: use <code>4242 4242 4242 4242</code>, data futura, qualquer CVC e CEP
+      </TestCardHint>
+
+      <button type="submit" disabled={!stripe || processing} className="pay-btn">
+        {processing ? "Processando..." : `Pagar ${parseFloat(price).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}`}
+      </button>
+    </form>
+  );
+};
 
 export const Payment = (props: any) => {
   const [loading, setLoading] = useState(true);
-  const [newsaldo, setNewSaldo] = useState(false);
-  const { params: { price }, } = props.match;
-  const { setCartItemContext } = React.useContext(AuthContext);
-  const { user, setUser } = React.useContext(AuthContext);
+  const [success, setSuccess] = useState(false);
+  const [insufficientFunds, setInsufficientFunds] = useState(false);
+  const { params: { price } } = props.match;
+  const { setCartItemContext, user, setUser } = React.useContext(AuthContext);
 
   useEffect(() => {
-
-    if (parseFloat(user.saldo) >= parseFloat(price)) {
-      const newSaldo = parseFloat(user.saldo) - parseFloat(price);
-      setUser({ ...user, saldo: newSaldo });
-      setItem("carrinhostore", []);
-      setItem("usuario", { ...user, saldo: newSaldo });
-      setCartItemContext(0)
-    } else {
-      setNewSaldo(true);
+    if (parseFloat(user.saldo) < parseFloat(price)) {
+      setInsufficientFunds(true);
     }
     setLoading(false);
   }, []);
 
+  const handleSuccess = () => {
+    const newSaldo = parseFloat(user.saldo) - parseFloat(price);
+    setUser({ ...user, saldo: newSaldo });
+    setItem("carrinhostore", []);
+    setCartItemContext(0);
+    setSuccess(true);
+  };
+
+  if (loading) return <Loading />;
+
+  if (insufficientFunds) return (
+    <PaymentPage>
+      <ErrorCard>
+        <div className="icon-circle"><ImCancelCircle /></div>
+        <h2>Saldo Insuficiente</h2>
+        <p className="subtitle">Você não tem saldo suficiente para concluir esta compra.</p>
+      </ErrorCard>
+    </PaymentPage>
+  );
+
+  if (success) return (
+    <PaymentPage>
+      <SuccessCard>
+        <div className="icon-circle"><AiFillCheckCircle /></div>
+        <h2>Compra concluída!</h2>
+        <div className="info-rows">
+          <div className="info-row">
+            <span className="row-label">Valor pago</span>
+            <span className="row-value green">
+              {Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(price)}
+            </span>
+          </div>
+          <div className="info-row">
+            <span className="row-label">Saldo restante</span>
+            <span className="row-value">
+              {Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(user.saldo)}
+            </span>
+          </div>
+          <div className="info-row">
+            <span className="row-label">Comprador</span>
+            <span className="row-value">{user.name}</span>
+          </div>
+          <div className="info-row">
+            <span className="row-label">Prazo de entrega</span>
+            <span className="row-value">{Math.ceil(Math.random() * 20) + 1} dias úteis</span>
+          </div>
+        </div>
+      </SuccessCard>
+    </PaymentPage>
+  );
+
   return (
-    <>
-      {loading ? (
-        <Loading />
-      ) : newsaldo ? (
-        <InsufficientFunds>
-          <div>
-            <span>
-              <ImCancelCircle />
-            </span>
-            <h2>Saldo Insuficiente</h2>
-          </div>
-        </InsufficientFunds>
-      ) : (
-        <PaymentArea>
-          <div>
-            <h2>Sua compra foi concluida com sucesso</h2>
-            
-            <span>
-              <AiFillCheckCircle />
-            </span>
-
-            <span>
-              Preço:&nbsp;
-              <p>{` R$ ${Intl.NumberFormat('pt-BR', { minimumFractionDigits: 2 }).format(price)}`}</p>
-            </span>
-
-            <span>
-              Saldo:&nbsp; 
-            <p>{`R$ ${Intl.NumberFormat('pt-BR', { minimumFractionDigits: 2 }).format(user.saldo)}`}</p>
-            </span>
-
-            <span>
-              Comprador:&nbsp;
-              <p>{` ${user.name}`}</p>
-            </span>
-
-            <span>
-              Prazo:&nbsp;
-              <p>{` ${Math.ceil(Math.random() * 20) + 1} dias`}</p>
-            </span>
-
-          </div>
-        </PaymentArea>
-      )}
-    </>
+    <PaymentPage>
+      <CheckoutCard>
+        <div className="card-header">
+          <span className="section-label">Pagamento seguro</span>
+          <h2>Finalizar compra</h2>
+        </div>
+        <Elements stripe={stripePromise}>
+          <CheckoutForm price={price} onSuccess={handleSuccess} />
+        </Elements>
+      </CheckoutCard>
+    </PaymentPage>
   );
 };
