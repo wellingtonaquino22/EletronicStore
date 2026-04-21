@@ -1,4 +1,4 @@
-import { Switch, Route, Redirect } from 'react-router-dom';
+import { Switch, Route, Redirect, RouteComponentProps } from 'react-router-dom';
 import { Store } from "./pages/store/Store";
 import { Cart } from "./pages/cart/Cart";
 import { Login } from "./pages/login/Login";
@@ -14,11 +14,11 @@ export const Content = () => {
     return (
         <Switch>
             <Route exact path="/" component={Login} />
-            <Route exact path="/store" render={(props) => isLoggedIn ? <Store {...props} /> : <Redirect to="/" />} />
-            <Route exact path="/cart" render={(props) => isLoggedIn ? <Cart {...props} /> : <Redirect to="/" />} />
-            <Route exact path="/payment/:price" render={(props) => isLoggedIn ? <Payment {...props} /> : <Redirect to="/" />} />
-            <Route exact path="/profile" render={(props) => isLoggedIn ? <Profile {...props} /> : <Redirect to="/" />} />
-            <Route exact path="/profile/edit" render={(props) => isLoggedIn ? <ProfileEdit {...props} /> : <Redirect to="/" />} />
+            <Route exact path="/store" render={() => isLoggedIn ? <Store /> : <Redirect to="/" />} />
+            <Route exact path="/cart" render={() => isLoggedIn ? <Cart /> : <Redirect to="/" />} />
+            <Route exact path="/payment/:price" render={(props: RouteComponentProps<{ price: string }>) => isLoggedIn ? <Payment {...props} /> : <Redirect to="/" />} />
+            <Route exact path="/profile" render={(props: RouteComponentProps) => isLoggedIn ? <Profile {...props} /> : <Redirect to="/" />} />
+            <Route exact path="/profile/edit" render={(props: RouteComponentProps) => isLoggedIn ? <ProfileEdit {...props} /> : <Redirect to="/" />} />
         </Switch>
     )
 }
