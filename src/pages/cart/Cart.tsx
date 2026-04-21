@@ -3,13 +3,15 @@ import { BsFillCartDashFill } from 'react-icons/bs';
 import { AiOutlineShoppingCart } from "react-icons/ai"
 import { AuthContext } from '../../providers/auth';
 import React, { useState } from 'react';
+import { useHistory } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { CartPage, CartHeader, CartLayout, CartItems, CartItem, CartSummary, ButtonCart, EmptyCart } from './style';
 
-export const Cart = (props: any) => {
+export const Cart = () => {
   const [data, setData] = useState(getItem('carrinhostore') || [])
   const { user, setCartItemContext } = React.useContext(AuthContext);
+  const history = useHistory();
 
   const toastError = () => toast.error('Removido do carrinho!', {
     position: "top-right", autoClose: 1000, theme: "dark",
@@ -24,13 +26,11 @@ export const Cart = (props: any) => {
   }
 
   const handleClick = () => {
-    const { history: { push } } = props
-    push(`/payment/${subtotal}`)
+    history.push(`/payment/${subtotal}`)
   }
 
   const handleClickreturn = () => {
-    const { history: { push } } = props
-    push(`/store`)
+    history.push('/store')
   }
 
   const subtotal = data.reduce((acc: number, cur: any) => acc + cur.price, 0)
