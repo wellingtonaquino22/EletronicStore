@@ -20,6 +20,9 @@
     "react-toastify": "^9.1.1",
     "styled-components": "^5.3.9"
   },
+  "engines": {
+    "node": ">=24.x"
+  },
   "devDependencies": {
     "@types/aos": "^3.0.4",
     "@types/react": "^18.0.27",
