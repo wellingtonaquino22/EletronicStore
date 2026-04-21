@@ -10,12 +10,11 @@ export const AuthProvider = (props: any) => {
         name: "",
         email: "",
         cpf: "123456789101",
-        saldo: 5000,
     })
 
     const logout = () => {
         setIsLoggedIn(false);
-        setUser({ name: "", email: "", cpf: "123456789101", saldo: 5000 });
+        setUser({ name: "", email: "", cpf: "123456789101" });
         setCartItemContext(0);
     }
 

@@ -1,15 +1,15 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { setItem } from "../../services/LocalStorage";
 import { AiFillCheckCircle } from "react-icons/ai";
-import { ImCancelCircle } from "react-icons/im";
 import { Loading } from "../../components/loading/Loading";
 import { AuthContext } from "../../providers/auth";
 import {
   PaymentPage, CheckoutCard, CardElementWrapper, TestCardHint,
-  SuccessCard, ErrorCard
+  SuccessCard
 } from "./style";
 import { loadStripe } from "@stripe/stripe-js";
 import { Elements, CardElement, useStripe, useElements } from "@stripe/react-stripe-js";
+import { RouteComponentProps } from "react-router-dom";
 
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY || "");
 
@@ -96,39 +96,19 @@ const CheckoutForm = ({ price, onSuccess }: CheckoutFormProps) => {
   );
 };
 
-export const Payment = (props: any) => {
-  const [loading, setLoading] = useState(true);
+export const Payment = (props: RouteComponentProps<{ price: string }>) => {
+  const [loading] = useState(false);
   const [success, setSuccess] = useState(false);
-  const [insufficientFunds, setInsufficientFunds] = useState(false);
   const { params: { price } } = props.match;
-  const { setCartItemContext, user, setUser } = React.useContext(AuthContext);
-
-  useEffect(() => {
-    if (parseFloat(user.saldo) < parseFloat(price)) {
-      setInsufficientFunds(true);
-    }
-    setLoading(false);
-  }, []);
+  const { setCartItemContext, user } = React.useContext(AuthContext);
 
   const handleSuccess = () => {
-    const newSaldo = parseFloat(user.saldo) - parseFloat(price);
-    setUser({ ...user, saldo: newSaldo });
     setItem("carrinhostore", []);
     setCartItemContext(0);
     setSuccess(true);
   };
 
   if (loading) return <Loading />;
-
-  if (insufficientFunds) return (
-    <PaymentPage>
-      <ErrorCard>
-        <div className="icon-circle"><ImCancelCircle /></div>
-        <h2>Saldo Insuficiente</h2>
-        <p className="subtitle">Você não tem saldo suficiente para concluir esta compra.</p>
-      </ErrorCard>
-    </PaymentPage>
-  );
 
   if (success) return (
     <PaymentPage>
@@ -139,13 +119,7 @@ export const Payment = (props: any) => {
           <div className="info-row">
             <span className="row-label">Valor pago</span>
             <span className="row-value green">
-              {Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(price)}
-            </span>
-          </div>
-          <div className="info-row">
-            <span className="row-label">Saldo restante</span>
-            <span className="row-value">
-              {Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(user.saldo)}
+              {Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(parseFloat(price))}
             </span>
           </div>
           <div className="info-row">

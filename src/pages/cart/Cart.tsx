@@ -10,7 +10,7 @@ import { CartPage, CartHeader, CartLayout, CartItems, CartItem, CartSummary, But
 
 export const Cart = () => {
   const [data, setData] = useState(getItem('carrinhostore') || [])
-  const { user, setCartItemContext } = React.useContext(AuthContext);
+  const { setCartItemContext } = React.useContext(AuthContext);
   const history = useHistory();
 
   const toastError = () => toast.error('Removido do carrinho!', {
@@ -34,7 +34,6 @@ export const Cart = () => {
   }
 
   const subtotal = data.reduce((acc: number, cur: any) => acc + cur.price, 0)
-  const hasEnoughBalance = parseFloat(user.saldo) >= subtotal
 
   return (
     <CartPage>
@@ -72,12 +71,6 @@ export const Cart = () => {
             <CartSummary>
               <h2>Resumo do pedido</h2>
               <div className="row">
-                <span>Seu saldo</span>
-                <span className="green">
-                  {parseFloat(user.saldo).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
-                </span>
-              </div>
-              <div className="row">
                 <span>{data.length} {data.length === 1 ? 'item' : 'itens'}</span>
                 <span>{subtotal.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</span>
               </div>
@@ -88,11 +81,8 @@ export const Cart = () => {
                   {subtotal.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
                 </span>
               </div>
-              {!hasEnoughBalance && (
-                <div className="warning">⚠ Saldo insuficiente para esta compra</div>
-              )}
               <ButtonCart
-                disabled={subtotal <= 0 || !hasEnoughBalance}
+                disabled={subtotal <= 0}
                 onClick={handleClick}
               >
                 Finalizar compra <AiOutlineShoppingCart />

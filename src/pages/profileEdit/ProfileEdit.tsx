@@ -1,21 +1,21 @@
 import React, { useState } from "react";
+import { RouteComponentProps } from "react-router-dom";
 import { AuthContext } from "../../providers/auth";
 import { ProfileEditPage, ProfileEditCard } from "./style";
 
-export const ProfileEdit = (props: any) => {
+export const ProfileEdit = (props: RouteComponentProps) => {
   const { user, setUser } = React.useContext(AuthContext);
   const [name, setName] = useState(user.name || '');
   const [email, setEmail] = useState(user.email || '');
   const [cpf, setCpf] = useState(user.cpf || '');
-  const [saldo, setSaldo] = useState(user.saldo || '');
 
   const cond = (
     name.length > 3 && (email.includes('@') && email.length > 8)
-    && cpf.length === 12 && Number(saldo) > 0
+    && cpf.length === 12
   )
 
   const saveChanges = () => {
-    setUser({ ...user, name, email, cpf, saldo: Number(saldo) })
+    setUser({ ...user, name, email, cpf })
     const { history: { push } } = props
     push('/profile')
   }
@@ -36,10 +36,6 @@ export const ProfileEdit = (props: any) => {
           <div className="form-group">
             <label>CPF (12 dígitos)</label>
             <input type="number" value={cpf} onChange={({ target: { value } }) => setCpf(value)} />
-          </div>
-          <div className="form-group">
-            <label>Saldo</label>
-            <input type="number" step="any" value={saldo} onChange={({ target: { value } }) => setSaldo(value)} />
           </div>
         </div>
         <button disabled={!cond} onClick={saveChanges}>Salvar alterações</button>

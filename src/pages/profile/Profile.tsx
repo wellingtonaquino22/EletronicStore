@@ -25,14 +25,16 @@ export const Profile = (props: any) => {
 
         <div className="profile-fields">
           <div className="field">
-            <span className="field-label">CPF</span>
-            <span className="field-value">{user.cpf}</span>
+            <span className="field-label">Nome</span>
+            <span className="field-value">{user.name}</span>
           </div>
           <div className="field">
-            <span className="field-label">Saldo</span>
-            <span className="field-value green">
-              {Number(user.saldo).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
-            </span>
+            <span className="field-label">Email</span>
+            <span className="field-value">{user.email}</span>
+          </div>
+          <div className="field">
+            <span className="field-label">CPF</span>
+            <span className="field-value">{user.cpf}</span>
           </div>
         </div>
 
